@@ -7,7 +7,7 @@ void setup() {
   pinMode(LCD_PWR, OUTPUT);
   pinMode(LCD_DC, OUTPUT);
   pinMode(LCD_E, OUTPUT);
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < 4; i++) {
     pinMode(LCD_BUS + i, OUTPUT);
   }
   digitalWrite(LCD_E, LOW);
@@ -16,59 +16,69 @@ void setup() {
   delay(30);
   
   for (int i = 0; i < 3; i++) {
-    lcdWrite(0, 0x30, 10);
+    writeHalf(0x3);
     delay(6);
   }
-  
-  lcdWrite(0, 0x3C, 10);
-  delay(1);
-  lcdWrite(0, 0x08, 50); // display off
-  lcdWrite(0, 0x01, 2000); // display clear
-  lcdWrite(0, 0x04, 50); // direction and shift
-  lcdWrite(0, 0x0F, 50); // display off
-  lcdWrite(1, 0x41, 50);
-  lcdWrite(0, 0xC0, 50);
-  lcdWrite(1, 0x31, 50);
-  /*
-  lcdWrite(0, 0x2C, 50); // 4-bit, 2-lines, 5x11 font
-  lcdWrite(0, 0x04, 50); // display off
-  lcdWrite(0, 0x01, 2000); // display clear
-  lcdWrite(0, 0x04, 50); // direction and shift
-  lcdWrite(0, 0x05, 50); // display on
-  
-  lcdWrite(1, 0x61, 50);
-  lcdWrite(1, 0x63, 50);
-  */
+
+  writeHalf(0x2);
+  delayMicroseconds(50);
+  lcdOptions(false, true, false);
+  lcdOnOff(false, false, false);
+  lcdClear();
+  lcdDirAndShift(true, false);
+  lcdOnOff(true, false, false);
+  lcdPutc('H');
+  lcdPutc('i');
+  lcdRowCol(1, 3);
+  lcdPutc('7');
+}
+
+void lcdOnOff(bool disp, bool cur, bool blnk) {
+  lcdWrite(0, 0x08 | (disp ? 4 : 0) | (cur ? 2 : 0) | (blnk ? 1 : 0), 50);
+}
+
+void lcdOptions(bool fullBus, bool twoLines, bool smallFont) {
+  lcdWrite(0, 0x20 | (fullBus ? 0x10 : 0) | (twoLines ? 8 : 0) | (smallFont ? 4 : 0), 50);
+}
+
+void lcdClear() {
+  lcdWrite(0, 0x01, 2000);
+}
+
+void lcdHome() {
+  lcdWrite(0, 0x02, 2000);
+}
+
+void lcdDirAndShift(bool dir, bool shift) {
+  lcdWrite(0, 0x04 | (dir ? 2 : 0) | (shift ? 1 : 0), 50);
+}
+
+void lcdRowCol(byte row, byte col) {
+  lcdWrite(0, 0x80 | (row << 6) | col, 50);
+}
+
+void lcdPutc(byte c) {
+  lcdWrite(1, c, 50);
 }
 
 void lcdWrite(byte dc, byte v, int t) {
   digitalWrite(LCD_DC, dc != 0 ? HIGH : LOW);
-  for (int i = 0; i < 8; i++) {
-    digitalWrite(LCD_BUS + i, v % 2 != 0 ? HIGH : LOW);
-    v /= 2;
-  }
-  delayMicroseconds(1000);
-  digitalWrite(LCD_E, HIGH);
-  delayMicroseconds(1000);
-  digitalWrite(LCD_E, LOW);
-  delayMicroseconds(1000);
-  delayMicroseconds(3000);
+  writeHalf(v >> 4);
+  writeHalf(v & 0xF);
+  delayMicroseconds(t);
 }
 
 void writeHalf(byte v) {
-  delayMicroseconds(1000);
+  delayMicroseconds(1);
   digitalWrite(LCD_E, HIGH);
-  delayMicroseconds(1000);
   for (int i = 0; i < 4; i++) {
     digitalWrite(LCD_BUS + i, v % 2 != 0 ? HIGH : LOW);
     v /= 2;
   }
-  delayMicroseconds(1000);
+  delayMicroseconds(1);
   digitalWrite(LCD_E, LOW);
-  delayMicroseconds(1000);
+  delayMicroseconds(1);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-
 }
