@@ -3,6 +3,8 @@
 #define LCD_E 4
 #define LCD_BUS 5
 
+long counter = 0;
+
 void setup() {
   pinMode(LCD_PWR, OUTPUT);
   pinMode(LCD_DC, OUTPUT);
@@ -27,10 +29,9 @@ void setup() {
   lcdClear();
   lcdDirAndShift(true, false);
   lcdOnOff(true, false, false);
-  lcdPutc('H');
-  lcdPutc('i');
-  lcdRowCol(1, 3);
-  lcdPutc('7');
+  lcdPuts("You are doing");
+  lcdRowCol(1, 0);
+  lcdPuts("nothing:");
 }
 
 void lcdOnOff(bool disp, bool cur, bool blnk) {
@@ -61,6 +62,12 @@ void lcdPutc(byte c) {
   lcdWrite(1, c, 50);
 }
 
+void lcdPuts(const char s[]) {
+  for (int i = 0; s[i] != 0; s++) {
+    lcdPutc(s[i]);
+  }
+}
+
 void lcdWrite(byte dc, byte v, int t) {
   digitalWrite(LCD_DC, dc != 0 ? HIGH : LOW);
   writeHalf(v >> 4);
@@ -81,4 +88,11 @@ void writeHalf(byte v) {
 }
 
 void loop() {
+  delay(1000);
+  char textBuf[16];
+  counter += 1;
+  itoa(counter, textBuf, 10);
+  lcdRowCol(1, 9);
+  lcdPuts(textBuf);
+  lcdPutc('s');
 }
